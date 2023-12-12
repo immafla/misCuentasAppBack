@@ -10,7 +10,7 @@ app.use(cors())
 
 const port = 3000
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectID } = require('mongodb');
 
 const uri = "mongodb+srv://aivan:FUhDA8mciA3e7VjH@cluster0.rirv94f.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { 
@@ -22,7 +22,6 @@ const client = new MongoClient(uri, {
 async function main() {
     try {
         await client.connect();
-    
     } catch (e) {
         console.error(e);
     }
@@ -35,12 +34,26 @@ const getAllDocumentsByCollection = async (collection) => {
 const setDocumentByCollection = async (collection, data) => {
     return await client.db("MisCuentasApp").collection(collection).insertOne(data);
 }
+const deleteDocumentByCollection = async (collection, query) => {
+    const ObjectId = new ObjectID(query._id)
+    return await client.db("MisCuentasApp").collection(collection).deleteOne({_id: ObjectId})
+}
 
 
 app.get('/getProducts', async (req, res) => {
     try{
         const products = await getAllDocumentsByCollection('products')
         const result = await products.toArray()
+        res.json(result);
+    }catch(e){
+        res.send(e)
+    }
+})
+
+app.get('/getAllBussinesCategory', async (req, res) => {
+    try{
+        const elements = await getAllDocumentsByCollection('bussinesCategory')
+        const result = await elements.toArray()
         res.json(result);
     }catch(e){
         res.send(e)
@@ -77,8 +90,28 @@ app.post('/setBussines', async (req, res) => {
     }
 })
 
+app.post('/setProduct', async (req, res) => {
+    try{
+        const result = await setDocumentByCollection('products', req.body)
+        res.json(result);
+    }catch(e){
+        console.log(e)
+        res.send(e)
+    }
+})
+
+app.delete('/deleteBrand', async (req,res) => {
+    try{
+        const result = await deleteDocumentByCollection('brands', req.body)
+        res.json(result);
+    }catch(e){
+        console.log(e)
+        res.send(e)
+    }
+})
+
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+    console.log(`Example app listening on port ${port}`)
 })
 
 main()
